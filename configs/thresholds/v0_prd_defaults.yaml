@@ -1,0 +1,45 @@
+# Threshold set v0: PRD starting points ONLY. Nothing here is calibrated.
+# PRD section 3 (FR-1) and section 9: "All thresholds are starting points requiring
+# per-dataset calibration via ROC analysis."
+#
+#   value present -> PRD supplied a starting value (source cited in the comment)
+#   value null    -> PRD did not specify it; MUST be calibrated before any evaluation
+#
+# Calibrated sets are written by scripts/calibrate_thresholds.py as
+# configs/thresholds/v1_calibrated_<hash>.yaml and never edit this file.
+
+version: v0_prd_defaults
+provenance: prd_defaults
+description: Uncalibrated starting points taken verbatim from PRD v1.
+
+quality:
+  blur_laplacian_var_min: 100.0        # PRD FR-1: flag blur if variance < ~100
+  snr_db_min: 15.0                     # PRD FR-1: flag noise if SNR < ~15 dB
+  exposure_mean_min: 20.0              # PRD FR-1: flag if mean intensity < 20
+  exposure_mean_max: 235.0             # PRD FR-1: flag if mean intensity > 235
+  reference_max_laplacian_var: null    # PRD names it in blur_% formula, gives no value
+
+ood:
+  in_distribution_percentile: 95.0     # PRD FR-2: 95th percentile of in-distribution distances
+  mahalanobis_borderline: null         # absolute distance; derived from the percentile in Phase 4
+  mahalanobis_severe: null             # not in PRD (table needs a "severely OOD" cut)
+  energy_borderline: null              # PRD names energy as cross-check, no value
+  energy_severe: null
+
+uncertainty:
+  confidence_high_min: null            # PRD table says High/Low, no values
+  confidence_low_max: null
+  positive_class_threshold: null       # PRD gives no operating point for the binary label
+
+decision:
+  borderline_margin: null              # needed for PRD section 4 "fail toward Escalate/Reject"
+
+repair:
+  max_repairable_blur_pct: null        # PRD section 11 open question: reversibility bounds
+  min_repairable_snr_db: null
+  repairable_exposure_mean_min: null
+  repairable_exposure_mean_max: null
+
+verification:
+  min_confidence_gain: 0.15            # PRD FR-7: e.g. >= 0.15
+  min_quality_gain: null               # PRD mentions quality delta, gives no margin

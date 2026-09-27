@@ -1,0 +1,7 @@
+# Parameters for scripts/run_eval.py.
+seed: 42
+bootstrap:
+  n_resamples: null                    # defined in Phase 7
+  group_by: patient_id                 # patient-level resampling
+baselines: [B0_raw_model, B1_confidence_reject_only, B2_always_escalate, B3_full_v1]
+targets_file: null                     # success targets written BEFORE test-set evaluation

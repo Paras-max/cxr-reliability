@@ -1,0 +1,155 @@
+# ==============================================================================
+# .gitignore for CXR Reliability Research & Streamlit Project
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Medical Imaging Datasets & Raw Images (CRITICAL: NIH ChestX-ray14 ~43 GB)
+# ------------------------------------------------------------------------------
+dataset/
+datasets/
+*.dcm
+
+# ------------------------------------------------------------------------------
+# 2. Local Environment, Configuration & Secrets
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*service_account*.json
+*firebase*.json
+
+# ------------------------------------------------------------------------------
+# 3. Python, Virtual Environments & Caches
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+var/
+sdist/
+wheels/
+share/python-wheels/
+*.manifest
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Testing & Linting caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# ------------------------------------------------------------------------------
+# 4. Project Data (Raw, Interim, and Generated Processed CSVs)
+# ------------------------------------------------------------------------------
+data/raw/*
+data/interim/*
+data/processed/*
+!data/**/.gitkeep
+!data/README.md
+
+# Manifests (track metadata/manifests, ignore transient files)
+!data/manifests/
+data/manifests/*
+!data/manifests/.gitkeep
+!data/manifests/*.csv
+!data/manifests/*.json
+
+# ------------------------------------------------------------------------------
+# 5. Model Weights & Large Pretrained Caches
+# ------------------------------------------------------------------------------
+models/*
+!models/.gitkeep
+!models/README.md
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.bin
+*.h5
+*.pb
+
+# ------------------------------------------------------------------------------
+# 6. Artifacts & Reference Statistics
+# Large numpy reference arrays (~19.5MB each, fitted via scripts/fit_ood_reference.py)
+# ------------------------------------------------------------------------------
+artifacts/**/*.npz
+*.npz
+!artifacts/**/metadata.json
+!artifacts/**/.gitkeep
+!artifacts/README.md
+
+# ------------------------------------------------------------------------------
+# 7. Outputs, Evaluation Results, and Logs (Regenerable)
+# ------------------------------------------------------------------------------
+outputs/*
+!outputs/.gitkeep
+!outputs/README.md
+logs/*
+!logs/.gitkeep
+*.log
+mlruns/
+.mlruns/
+
+# ------------------------------------------------------------------------------
+# 8. Archive & Backup Files (e.g. frozen_pipeline_backup_*.zip)
+# ------------------------------------------------------------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.bak
+*.backup
+
+# ------------------------------------------------------------------------------
+# 9. Jupyter Notebook Checkpoints
+# ------------------------------------------------------------------------------
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# ------------------------------------------------------------------------------
+# 10. OS & Editor Specific Files
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~

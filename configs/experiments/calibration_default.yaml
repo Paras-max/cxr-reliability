@@ -1,0 +1,13 @@
+# Parameters for scripts/calibrate_thresholds.py. Seeds and grids are recorded so every
+# calibrated threshold file is reproducible (PRD section 4, Reproducibility).
+seed: 42
+quality_calibration:
+  corruption_severity_levels: null     # defined in Phase 3
+  target_operating_point: null         # e.g. fixed sensitivity for defect detection; set in Phase 3
+ood_calibration:
+  in_distribution_percentile: 95.0
+  feature_layer_candidates: null       # defined in Phase 4
+confidence_calibration:
+  method: temperature_scaling
+verification_calibration:
+  margin_sweep: null                   # defined in Phase 5

@@ -1,0 +1,30 @@
+# Research prototype only. Do not feed real patient data to these services.
+# Usage: cp .env.example .env && docker compose up --build
+services:
+  api:
+    build: .
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data:ro
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+      - ./configs:/app/configs:ro
+
+  dashboard:
+    build: .
+    env_file: .env
+    command: ["streamlit", "run", "src/cxr_reliability/dashboard/app.py",
+              "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data:ro
+      - ./models:/app/models:ro
+      - ./outputs:/app/outputs:ro
+      - ./logs:/app/logs:ro
+      - ./configs:/app/configs:ro
+    depends_on:
+      - api

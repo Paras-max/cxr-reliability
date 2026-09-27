@@ -1,0 +1,21 @@
+# Pipeline wiring (not thresholds). Thresholds live in configs/thresholds/.
+# Items marked PROPOSED are design defaults from the implementation plan, not PRD values.
+
+models:
+  fast_model_id: densenet121-res224-nih        # PRD FR-3 / section 5
+  escalation_model_id: resnet50-res512-all     # PRD FR-3 / section 5
+  target_pathology: Pneumonia
+  ood_feature_layer: null                      # chosen in Phase 4 by comparing candidate layers
+
+loop_limits:                                   # PROPOSED: guarantees termination
+  max_repair_attempts: 1
+  max_escalation_attempts: 1
+
+execution:
+  run_quality_and_model_in_parallel: true      # PRD FR-8 step 1 (adapted: OOD needs model features)
+  borderline_action: escalate                  # PRD section 4 safety default; escalate | reject
+
+audit:
+  enabled: true                                # PRD section 4: per-inference logging is mandatory
+  format: jsonl
+  directory: logs/audit
