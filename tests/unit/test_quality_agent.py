@@ -39,24 +39,20 @@ import numpy as np
 import pytest
 import scipy.ndimage
 import torch
-from PIL import Image
 
 from cxr_reliability.agents.quality import QualityAgent
 from cxr_reliability.contracts.common import AgentName
 from cxr_reliability.contracts.quality import QualityFlags, QualityLevel, QualityResult
 from cxr_reliability.quality import (
     QualityConfig,
-    QualityEvaluator,
     compute_blur_pct,
     compute_laplacian_variance,
     compute_snr_db,
-    estimate_noise_std,
     evaluate_blur,
     evaluate_exposure,
     evaluate_noise,
     prepare_image_for_quality,
 )
-
 
 # ── Synthetic image helpers ───────────────────────────────────────────────────
 

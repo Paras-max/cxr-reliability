@@ -53,9 +53,7 @@ from cxr_reliability.config.thresholds import RepairThresholds
 from cxr_reliability.contracts.common import AgentName
 from cxr_reliability.contracts.decision import Action, DecisionResult
 from cxr_reliability.contracts.quality import DefectType, QualityFlags, QualityLevel, QualityResult
-from cxr_reliability.contracts.repair import RepairResult, RepairStep
-from cxr_reliability.repair.pipeline import REPAIR_EXECUTION_ORDER, RepairConfig
-
+from cxr_reliability.contracts.repair import RepairResult
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

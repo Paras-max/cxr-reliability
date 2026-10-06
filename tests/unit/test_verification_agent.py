@@ -60,7 +60,6 @@ from cxr_reliability.contracts.verification import (
     VerificationStatus,
 )
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 @pytest.fixture

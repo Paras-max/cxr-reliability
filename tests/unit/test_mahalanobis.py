@@ -41,7 +41,6 @@ from cxr_reliability.ood.mahalanobis import (
 )
 from cxr_reliability.ood.statistics import OODReferenceStats, fit_reference_stats
 
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _make_identity_stats(dim: int, n_samples: int = 1000, seed: int = 0) -> OODReferenceStats:

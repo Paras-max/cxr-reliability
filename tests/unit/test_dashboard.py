@@ -19,15 +19,12 @@ Contains exactly 13 test items verifying:
 
 from __future__ import annotations
 
-import ast
 import hashlib
-import io
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import pytest
 from PIL import Image
 
 _SRC = Path(__file__).resolve().parent.parent.parent / "src"
@@ -35,7 +32,7 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from cxr_reliability.contracts.base_model import BaseModelResult
-from cxr_reliability.contracts.common import AgentName, DISCLAIMER
+from cxr_reliability.contracts.common import AgentName
 from cxr_reliability.contracts.decision import Action, DecisionResult
 from cxr_reliability.contracts.ood import OODLevel, OODResult
 from cxr_reliability.contracts.pipeline import (
@@ -57,23 +54,14 @@ from cxr_reliability.contracts.verification import (
     VerificationResult,
     VerificationStatus,
 )
-from cxr_reliability.dashboard import app, components
 from cxr_reliability.dashboard.components import (
-    RESEARCH_DISCLAIMER_TEXT,
-    render_base_model_section,
-    render_decision_section,
     render_disclaimer_banner,
     render_final_result,
     render_header,
     render_human_review_banner,
-    render_ood_section,
-    render_quality_section,
     render_repair_section,
-    render_sidebar,
-    render_uncertainty_section,
     render_verification_section,
 )
-
 
 # ── Helpers & Fixtures ───────────────────────────────────────────────────────
 
@@ -339,7 +327,11 @@ def test_escalate_result_renders():
         reason="Borderline OOD and high uncertainty",
     )
 
-    with patch("streamlit.metric") as mock_metric, patch("streamlit.error") as mock_error, patch("streamlit.columns") as mock_cols:
+    with (
+        patch("streamlit.metric") as _mock_metric,
+        patch("streamlit.error") as mock_error,
+        patch("streamlit.columns") as mock_cols,
+    ):
         mock_cols.return_value = [MagicMock(), MagicMock(), MagicMock(), MagicMock()]
         render_human_review_banner(result)
         render_final_result(result)
@@ -396,7 +388,11 @@ def test_error_result_renders():
         error_message="RuntimeError: CUDA out of memory",
     )
 
-    with patch("streamlit.metric") as mock_metric, patch("streamlit.error") as mock_error, patch("streamlit.columns") as mock_cols:
+    with (
+        patch("streamlit.metric") as mock_metric,
+        patch("streamlit.error") as _mock_error,
+        patch("streamlit.columns") as mock_cols,
+    ):
         mock_cols.return_value = [MagicMock(), MagicMock(), MagicMock(), MagicMock()]
         render_human_review_banner(result)
         render_final_result(result)

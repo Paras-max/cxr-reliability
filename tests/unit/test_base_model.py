@@ -21,7 +21,6 @@ Usage:
 from __future__ import annotations
 
 import sys
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -35,14 +34,13 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from cxr_reliability.models.base_model import (
-    PNEUMONIA_OUTPUT_INDEX,
     PNEUMONIA_LABEL_NAME,
+    PNEUMONIA_OUTPUT_INDEX,
     TXV_NIH_PATHOLOGY_LABELS,
     BaseModelAgent,
 )
-from cxr_reliability.models.preprocessing import load_image_for_txv
 from cxr_reliability.models.model_factory import detect_device
-
+from cxr_reliability.models.preprocessing import load_image_for_txv
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -165,8 +163,9 @@ def test_label_list_length():
 
 def test_feature_hook_layer_navigation():
     """FeatureExtractor should find features.norm5 in a mock module."""
-    from cxr_reliability.models.feature_hook import FeatureExtractor
     import torch.nn as nn
+
+    from cxr_reliability.models.feature_hook import FeatureExtractor
 
     class MockNorm(nn.Module):
         def forward(self, x): return x
@@ -189,8 +188,9 @@ def test_feature_hook_layer_navigation():
 
 
 def test_feature_hook_invalid_layer():
-    from cxr_reliability.models.feature_hook import FeatureExtractor
     import torch.nn as nn
+
+    from cxr_reliability.models.feature_hook import FeatureExtractor
 
     model = nn.Linear(10, 10)
     extractor = FeatureExtractor(model, "nonexistent_layer")

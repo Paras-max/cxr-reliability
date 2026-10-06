@@ -74,7 +74,8 @@ def _resolve_image_path(rel_path: str) -> Path:
 
 def main() -> None:
     import pandas as pd
-    from cxr_reliability.models.model_factory import get_model, detect_device
+
+    from cxr_reliability.models.model_factory import detect_device, get_model
     from cxr_reliability.models.preprocessing import load_image_for_txv
 
     print()
@@ -123,7 +124,7 @@ def main() -> None:
     print(f"  Architecture     : {info['model_class']}")
     print(f"  Pretrained on    : {info['txv_training_dataset']}")
     print(f"  Output classes   : {info['num_output_classes']}")
-    print(f"  Pathology labels : {[l for l in info['output_labels'] if l]}")
+    print(f"  Pathology labels : {[lbl for lbl in info['output_labels'] if lbl]}")
     print(f"  Target pathology : {info['target_pathology']} (index {info['target_pathology_index']})")
     print(f"  Output type      : {info['output_type']}")
     print(f"  Input size       : {info['input_size']}")

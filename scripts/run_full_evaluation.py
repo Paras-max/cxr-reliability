@@ -22,7 +22,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 # ── Ensure project root and src are on sys.path ─────────────────────────
@@ -92,7 +91,7 @@ def run_full_evaluation(resume: bool = True, flush_interval: int = 50) -> None:
     n_processed_this_session = 0
 
     try:
-        for idx, row in df_test.iterrows():
+        for _idx, row in df_test.iterrows():
             img_id = str(row["image_id"])
 
             if img_id in completed_ids:
@@ -117,6 +116,7 @@ def run_full_evaluation(resume: bool = True, flush_interval: int = 50) -> None:
                     "final_action": "reject",
                     "reliability_label": "needs_human_review",
                     "needs_human_review": True,
+                    "final_classification": "HUMAN_REVIEW_REQUIRED",
                     "prediction_released": False,
                     "prediction_positive": None,
                     "raw_model_score": None,
@@ -204,6 +204,7 @@ def run_full_evaluation(resume: bool = True, flush_interval: int = 50) -> None:
                     "final_action": res.final_action.value,
                     "reliability_label": res.reliability_label.value,
                     "needs_human_review": res.needs_human_review,
+                    "final_classification": res.final_classification.value,
                     "prediction_released": (res.prediction is not None and not res.needs_human_review),
                     "prediction_positive": pred_pos,
                     "raw_model_score": raw_score,
@@ -238,6 +239,7 @@ def run_full_evaluation(resume: bool = True, flush_interval: int = 50) -> None:
                     "final_action": "reject",
                     "reliability_label": "needs_human_review",
                     "needs_human_review": True,
+                    "final_classification": "HUMAN_REVIEW_REQUIRED",
                     "prediction_released": False,
                     "prediction_positive": None,
                     "raw_model_score": None,
@@ -333,13 +335,13 @@ def run_full_evaluation(resume: bool = True, flush_interval: int = 50) -> None:
     n_repairs_applied = int(df_out["repair_applied"].sum())
     n_repairs_skipped = n_repair_attempts - n_repairs_applied
 
-    df_applied = df_out[df_out["repair_applied"] == True]
+    df_applied = df_out[df_out["repair_applied"]]
     n_q_improved = int(df_applied["quality_improved"].sum()) if not df_applied.empty else 0
     n_q_unchanged = int(df_applied["quality_unchanged"].sum()) if not df_applied.empty else 0
     n_q_worsened = int(df_applied["quality_worsened"].sum()) if not df_applied.empty else 0
 
     # 7. Verification breakdown
-    df_ver = df_out[df_out["verification_status"].isin([True, False, "True", "False"])]
+    _df_ver = df_out[df_out["verification_status"].isin([True, False, "True", "False"])]
     n_verified = int((df_out["verification_status"].isin([True, "True"])).sum())
     n_ver_escalated = int((df_out["verification_next_step"] == "escalate").sum())
     n_ver_rejected = int((df_out["verification_next_step"] == "reject").sum())
@@ -359,7 +361,7 @@ def run_full_evaluation(resume: bool = True, flush_interval: int = 50) -> None:
     }
 
     # 8. Classification metrics on RELEASED predictions only
-    df_released = df_out[df_out["prediction_released"] == True]
+    df_released = df_out[df_out["prediction_released"]]
     class_metrics: dict[str, Any] = {
         "n_total": n_total,
         "n_released": n_released,

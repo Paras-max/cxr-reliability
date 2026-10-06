@@ -18,11 +18,9 @@ Verifies:
 
 from __future__ import annotations
 
-import math
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import numpy as np
 import pytest
 import torch
 
@@ -31,20 +29,16 @@ from cxr_reliability.calibration.probability_calibration import ProbabilityCalib
 from cxr_reliability.contracts.base_model import BaseModelResult
 from cxr_reliability.contracts.common import AgentName
 from cxr_reliability.contracts.pipeline import (
-    PipelineResult,
-    PipelineState,
     PredictionSummary,
-    ReliabilityLabel,
 )
-from cxr_reliability.contracts.uncertainty import UncertaintyLevel, UncertaintyResult
+from cxr_reliability.contracts.uncertainty import UncertaintyLevel
 from cxr_reliability.dashboard.components import render_base_model_section
 from cxr_reliability.models.base_model import (
+    RAW_OPERATING_THRESHOLD,
     BaseModelAgent,
     ModelForward,
-    RAW_OPERATING_THRESHOLD,
 )
 from cxr_reliability.pipeline.orchestrator import ReliabilityPipeline
-
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 CALIBRATION_DIR = PROJECT_ROOT / "outputs" / "calibration"

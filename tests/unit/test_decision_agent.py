@@ -36,7 +36,6 @@ import pytest
 from pydantic import ValidationError
 
 from cxr_reliability.agents.decision.rules import (
-    RuleTableDecisionAgent,
     _RULE_ACCEPT,
     _RULE_BORDERLINE,
     _RULE_ESCALATE_HIGH,
@@ -45,6 +44,7 @@ from cxr_reliability.agents.decision.rules import (
     _RULE_REPAIR,
     _RULE_SAFE_DEFAULT,
     _RULE_SEVERE_OOD,
+    RuleTableDecisionAgent,
 )
 from cxr_reliability.config.pipeline_config import ExecutionConfig
 from cxr_reliability.config.thresholds import DecisionThresholds
@@ -53,7 +53,6 @@ from cxr_reliability.contracts.decision import Action, DecisionResult, DecisionS
 from cxr_reliability.contracts.ood import OODLevel, OODResult
 from cxr_reliability.contracts.quality import QualityFlags, QualityLevel, QualityResult
 from cxr_reliability.contracts.uncertainty import UncertaintyLevel, UncertaintyResult
-
 
 # ── Helpers / factories ────────────────────────────────────────────────────────
 
@@ -594,11 +593,6 @@ class TestReasoning:
         By convention, each reasoning string begins with the action name.
         """
         agent = make_agent()
-        cases = [
-            (QualityLevel.GOOD, OODLevel.IN_DISTRIBUTION, UncertaintyLevel.LOW, "ACCEPT"),
-            (QualityLevel.GOOD, OODLevel.IN_DISTRIBUTION, UncertaintyLevel.HIGH, "ESCALATE"),
-            (QualityLevel.GOOD, OODLevel.SEVERE, OODLevel.SEVERE, None),  # just check REJECT
-        ]
         result_accept = agent.decide(
             make_quality(QualityLevel.GOOD),
             make_ood(OODLevel.IN_DISTRIBUTION),

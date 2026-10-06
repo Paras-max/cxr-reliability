@@ -14,7 +14,6 @@ from cxr_reliability.calibration.probability_calibration import (
 )
 from cxr_reliability.calibration.threshold_calibration import ThresholdAnalyzer
 
-
 # ═══════════════════════════════════════════════════════════════════════
 #  Fixtures
 # ═══════════════════════════════════════════════════════════════════════

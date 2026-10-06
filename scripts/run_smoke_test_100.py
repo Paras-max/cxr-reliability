@@ -18,7 +18,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 # Ensure src is on path
@@ -81,6 +80,7 @@ def run_smoke_test() -> None:
                 "final_action": "reject",
                 "reliability_label": "needs_human_review",
                 "needs_human_review": True,
+                "final_classification": "HUMAN_REVIEW_REQUIRED",
                 "prediction_released": False,
                 "prediction_positive": None,
                 "raw_model_score": None,
@@ -146,6 +146,7 @@ def run_smoke_test() -> None:
                 "final_action": res.final_action.value,
                 "reliability_label": res.reliability_label.value,
                 "needs_human_review": res.needs_human_review,
+                "final_classification": res.final_classification.value,
                 "prediction_released": (res.prediction is not None and not res.needs_human_review),
                 "prediction_positive": pred_pos,
                 "raw_model_score": raw_score,
@@ -175,6 +176,7 @@ def run_smoke_test() -> None:
                 "final_action": "reject",
                 "reliability_label": "needs_human_review",
                 "needs_human_review": True,
+                "final_classification": "HUMAN_REVIEW_REQUIRED",
                 "prediction_released": False,
                 "prediction_positive": None,
                 "raw_model_score": None,
@@ -223,7 +225,7 @@ def run_smoke_test() -> None:
 
     # Repair counts
     n_repair_attempts = int(df_out["repair_attempted"].sum())
-    n_verified_repairs = int((df_out["verification_status"] == True).sum())
+    n_verified_repairs = int((df_out["verification_status"].isin([True, "True"])).sum())
 
     # Latencies
     latencies = df_out.loc[df_out["latency_ms"] > 0, "latency_ms"]
@@ -231,7 +233,7 @@ def run_smoke_test() -> None:
     median_latency_ms = float(latencies.median()) if not latencies.empty else 0.0
 
     # Classification metrics on RELEASED predictions only
-    df_released = df_out[df_out["prediction_released"] == True]
+    df_released = df_out[df_out["prediction_released"]]
     n_released = len(df_released)
     release_rate = n_released / n_total if n_total > 0 else 0.0
 

@@ -26,7 +26,6 @@ Usage:
 from __future__ import annotations
 
 import sys
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -43,7 +42,6 @@ from cxr_reliability.contracts.ood import OODLevel, OODResult
 from cxr_reliability.ood.detector import OODConfig, OODDetector
 from cxr_reliability.ood.statistics import fit_reference_stats, save_stats
 
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _create_stats_in_tmp(
@@ -58,7 +56,6 @@ def _create_stats_in_tmp(
     rng = np.random.default_rng(seed)
     train_data = rng.standard_normal((n_train, dim))
     stats = fit_reference_stats(train_data, lambda_reg=1e-4)
-    import json
     save_stats(stats, output_dir=tmp_path, extra_metadata={
         "mahalanobis_borderline": borderline,
         "mahalanobis_severe": severe,
@@ -368,9 +365,8 @@ def test_integration_with_real_model(tmp_path: Path):
 
     Skipped unless -m slow is specified (requires model weights).
     """
-    import sys
-    from PIL import Image
     import numpy as np
+    from PIL import Image
 
     # Create a synthetic chest-like image
     rng = np.random.default_rng(42)

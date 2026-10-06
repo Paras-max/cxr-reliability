@@ -29,12 +29,12 @@ for p in (str(_SRC), str(_SCRIPTS)):
     if p not in sys.path:
         sys.path.insert(0, p)
 
+from fit_ood_reference import _load_split_image_ids, _parse_args, select_deterministic_subset
+
 from cxr_reliability.agents.ood import OODAgent
 from cxr_reliability.calibration.ood_fit import fit_gaussian_stats
 from cxr_reliability.config.thresholds import OODThresholds
 from cxr_reliability.dashboard.app import discover_available_ood_stats, resolve_ood_stats_path
-from fit_ood_reference import _load_split_image_ids, _parse_args, select_deterministic_subset
-
 
 # ── 1. Deterministic Subset Selection ─────────────────────────────────────────
 
@@ -118,7 +118,7 @@ def test_metadata_identifies_development_mode(tmp_path: Path):
         "disclaimer": "DEVELOPMENT / PROVISIONAL reference statistics fitted on a subset.",
     }
 
-    stats = fit_gaussian_stats(
+    _stats = fit_gaussian_stats(
         features=feat,
         output_path=tmp_path,
         lambda_reg=1e-5,

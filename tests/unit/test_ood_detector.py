@@ -24,7 +24,6 @@ Usage:
 from __future__ import annotations
 
 import sys
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -35,8 +34,7 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from cxr_reliability.ood.detector import OODConfig, OODDetector, OODPrediction
-from cxr_reliability.ood.statistics import fit_reference_stats, save_stats
-
+from cxr_reliability.ood.statistics import fit_reference_stats
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

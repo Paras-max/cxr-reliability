@@ -44,7 +44,7 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from cxr_reliability.contracts.base_model import BaseModelResult
-from cxr_reliability.contracts.common import AgentName, DISCLAIMER
+from cxr_reliability.contracts.common import DISCLAIMER, AgentName
 from cxr_reliability.contracts.decision import Action, DecisionResult, DecisionState
 from cxr_reliability.contracts.ood import OODLevel, OODResult
 from cxr_reliability.contracts.pipeline import (
@@ -69,7 +69,6 @@ from cxr_reliability.contracts.verification import (
 )
 from cxr_reliability.models.base_model import ModelForward
 from cxr_reliability.pipeline.orchestrator import ReliabilityPipeline
-
 
 # ── Test Fixtures & Factories ────────────────────────────────────────────────
 
@@ -715,13 +714,13 @@ def test_integration_smoke_pipeline():
     """Test 21: Integration smoke test connecting real Quality Agent, mock Base Model,
     real Uncertainty Agent, real Decision Agent, real Repair Agent, and real Verification Agent.
     """
-    from cxr_reliability.agents.quality import QualityAgent
-    from cxr_reliability.agents.uncertainty import UncertaintyAgent
     from cxr_reliability.agents.decision.rules import RuleTableDecisionAgent
+    from cxr_reliability.agents.quality import QualityAgent
     from cxr_reliability.agents.repair import RepairAgent
+    from cxr_reliability.agents.uncertainty import UncertaintyAgent
     from cxr_reliability.agents.verification import VerificationAgent
-    from cxr_reliability.config.thresholds import DecisionThresholds
     from cxr_reliability.config.pipeline_config import ExecutionConfig
+    from cxr_reliability.config.thresholds import DecisionThresholds
 
     quality_agent = QualityAgent()
     uncertainty_agent = UncertaintyAgent()
