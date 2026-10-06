@@ -31,7 +31,6 @@ from pathlib import Path
 import torch
 import torchxrayvision as xrv
 
-
 # Default cache directory used by TorchXRayVision
 _TXV_CACHE_DIR = Path.home() / ".torchxrayvision" / "models_data"
 

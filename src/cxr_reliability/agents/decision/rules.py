@@ -56,7 +56,6 @@ Implementation phase: P8
 from __future__ import annotations
 
 import time
-from typing import Literal
 
 from cxr_reliability.agents.base import AgentBase
 from cxr_reliability.config.pipeline_config import ExecutionConfig

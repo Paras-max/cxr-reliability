@@ -41,17 +41,16 @@ from cxr_reliability.agents.uncertainty import UncertaintyAgent
 from cxr_reliability.agents.verification import VerificationAgent
 from cxr_reliability.config.pipeline_config import ExecutionConfig
 from cxr_reliability.config.thresholds import Thresholds, load_thresholds
-from cxr_reliability.contracts.common import DISCLAIMER
-from cxr_reliability.contracts.pipeline import PipelineResult, PipelineState
+from cxr_reliability.contracts.pipeline import PipelineResult
 from cxr_reliability.dashboard.components import (
     render_agent_trace,
     render_base_model_section,
     render_decision_section,
-    render_disclaimer_banner,
     render_final_result,
     render_header,
     render_human_review_banner,
     render_ood_section,
+    render_pneumonia_classification,
     render_quality_section,
     render_repair_section,
     render_sidebar,
@@ -288,6 +287,9 @@ def main() -> None:
     if result is not None:
         st.divider()
         st.header("3. Assessment Results")
+
+        # Top-level Pneumonia Classification (additive requirement)
+        render_pneumonia_classification(result)
 
         # Human Review Alert (if required)
         render_human_review_banner(result)

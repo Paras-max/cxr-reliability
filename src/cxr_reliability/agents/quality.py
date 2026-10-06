@@ -24,7 +24,6 @@ Constraints
 from __future__ import annotations
 
 import time
-from pathlib import Path
 from typing import Any
 
 from cxr_reliability.agents.base import AgentBase

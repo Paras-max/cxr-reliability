@@ -36,7 +36,7 @@ from cxr_reliability.agents.base import AgentBase
 from cxr_reliability.config.thresholds import UncertaintyThresholds
 from cxr_reliability.contracts.base_model import BaseModelResult
 from cxr_reliability.contracts.common import AgentName
-from cxr_reliability.contracts.uncertainty import UncertaintyLevel, UncertaintyResult
+from cxr_reliability.contracts.uncertainty import UncertaintyResult
 from cxr_reliability.uncertainty.estimator import (
     UncertaintyConfig,
     UncertaintyEstimator,

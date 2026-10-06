@@ -56,7 +56,6 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -314,7 +313,7 @@ def main(args: argparse.Namespace) -> int:
         output_dir = Path("artifacts/ood_dev")
     else:
         output_dir = Path(args.output_dir)
-    val_output_dir = output_dir  # validation stats go in same dir
+    _val_output_dir = output_dir  # validation stats go in same dir
 
     output_dir.mkdir(parents=True, exist_ok=True)
 

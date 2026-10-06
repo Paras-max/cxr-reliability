@@ -28,11 +28,9 @@ Mathematical Definition
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 import scipy.ndimage
-
 
 # Standard 3x3 discrete Laplacian kernel
 _LAPLACIAN_KERNEL = np.array(

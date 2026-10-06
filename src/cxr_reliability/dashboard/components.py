@@ -18,32 +18,93 @@ Dependencies:
 
 from __future__ import annotations
 
-import io
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import streamlit as st
-from PIL import Image
 
 from cxr_reliability.contracts.base_model import BaseModelResult
 from cxr_reliability.contracts.common import DISCLAIMER
 from cxr_reliability.contracts.decision import DecisionResult
-from cxr_reliability.contracts.ood import OODLevel, OODResult
+from cxr_reliability.contracts.ood import OODResult
 from cxr_reliability.contracts.pipeline import (
-    PipelineOutput,
+    FinalClassification,
     PipelineResult,
     PipelineState,
     PredictionSummary,
-    ReliabilityLabel,
 )
-from cxr_reliability.contracts.quality import QualityLevel, QualityResult
+from cxr_reliability.contracts.quality import QualityResult
 from cxr_reliability.contracts.repair import RepairResult
-from cxr_reliability.contracts.uncertainty import UncertaintyLevel, UncertaintyResult
-from cxr_reliability.contracts.verification import NextStep, VerificationResult, VerificationStatus
+from cxr_reliability.contracts.uncertainty import UncertaintyResult
+from cxr_reliability.contracts.verification import VerificationResult
 
 RESEARCH_DISCLAIMER_TEXT = (
     "Research prototype only — not clinically validated and not intended for medical diagnosis."
 )
+
+
+def render_pneumonia_classification(result: PipelineResult) -> None:
+    """
+    Render top-level Pneumonia Classification section (Phase additive requirement).
+
+    Displays one of:
+      - PNEUMONIA DETECTED (Reliability: ACCEPTED)
+      - PNEUMONIA NOT DETECTED (Reliability: ACCEPTED)
+      - HUMAN REVIEW REQUIRED (Reliable classification was not released.)
+    """
+    st.subheader("PNEUMONIA CLASSIFICATION")
+
+    classification = getattr(result, "final_classification", None)
+    if classification is None:
+        cls_val = "HUMAN_REVIEW_REQUIRED" if result.needs_human_review else (
+            "PNEUMONIA" if (result.prediction and result.prediction.positive) else "NO_PNEUMONIA"
+        )
+    else:
+        cls_val = classification.value if hasattr(classification, "value") else str(classification)
+
+    rel_label = (
+        result.reliability_label.value.upper()
+        if hasattr(result.reliability_label, "value")
+        else str(result.reliability_label).upper()
+    )
+
+    if cls_val == "PNEUMONIA":
+        st.markdown(
+            f"""
+            <div style="background: rgba(255, 75, 75, 0.08); border: 2px solid #ff4b4b; border-radius: 10px; padding: 22px; text-align: center; margin: 10px 0 20px 0;">
+                <h1 style="color: #ff4b4b; margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: 1.5px;">PNEUMONIA DETECTED</h1>
+                <p style="font-size: 1.15rem; margin-top: 12px; margin-bottom: 0; font-weight: 600;">
+                    Reliability: <span style="color: #00c04b; font-weight: 700;">{rel_label}</span>
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    elif cls_val == "NO_PNEUMONIA":
+        st.markdown(
+            f"""
+            <div style="background: rgba(0, 192, 75, 0.08); border: 2px solid #00c04b; border-radius: 10px; padding: 22px; text-align: center; margin: 10px 0 20px 0;">
+                <h1 style="color: #00c04b; margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: 1.5px;">PNEUMONIA NOT DETECTED</h1>
+                <p style="font-size: 1.15rem; margin-top: 12px; margin-bottom: 0; font-weight: 600;">
+                    Reliability: <span style="color: #00c04b; font-weight: 700;">{rel_label}</span>
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """
+            <div style="background: rgba(255, 170, 0, 0.08); border: 2px solid #ffaa00; border-radius: 10px; padding: 22px; text-align: center; margin: 10px 0 20px 0;">
+                <h1 style="color: #ffaa00; margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: 1.5px;">HUMAN REVIEW REQUIRED</h1>
+                <p style="font-size: 1.15rem; margin-top: 12px; margin-bottom: 0; font-weight: 600; color: #ffaa00;">
+                    Reliable classification was not released.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 def render_disclaimer_banner() -> None:
@@ -104,6 +165,20 @@ def render_sidebar(
                     st.caption(f"Artifact path: `{path_str}`")
         else:
             st.write("**OOD Stats:** `Reference baseline (Phase 13 pending)`")
+
+        st.divider()
+        st.subheader("Presentation & Viva")
+        import pathlib
+        presentation_path = pathlib.Path(__file__).resolve().parent.parent.parent.parent / "SYSTEM_PRESENTATION.html"
+        if presentation_path.exists():
+            with open(presentation_path, "r", encoding="utf-8") as f:
+                st.download_button(
+                    label="📥 Download Presentation (HTML)",
+                    data=f.read().encode("utf-8"),
+                    file_name="CXR_System_Executive_Presentation.html",
+                    mime="text/html",
+                    use_container_width=True,
+                )
 
 
 def render_human_review_banner(result: PipelineResult) -> None:

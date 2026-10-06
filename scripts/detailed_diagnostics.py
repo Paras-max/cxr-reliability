@@ -1,12 +1,12 @@
 import sys
 from pathlib import Path
+
 import pandas as pd
-import numpy as np
 
 PROJECT_ROOT = Path(".").resolve()
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cxr_reliability.dashboard.app import load_pipeline, FULL_OOD_STATS_PATH
+from cxr_reliability.dashboard.app import FULL_OOD_STATS_PATH, load_pipeline
 
 pipeline, thresholds, device, ood_info = load_pipeline(str(FULL_OOD_STATS_PATH))
 df_test = pd.read_csv("data/processed/test.csv", nrows=100)
@@ -15,7 +15,7 @@ quality_rank = {"poor": 0, "degraded": 1, "good": 2}
 
 results = []
 
-for idx, row in df_test.iterrows():
+for _idx, row in df_test.iterrows():
     img_id = str(row["image_id"])
     rel_path = str(row["image_path"]).replace("\\", "/")
     img_path = PROJECT_ROOT / "dataset" / rel_path
@@ -76,7 +76,7 @@ print("Initial rules:\n", df_res["init_rule"].value_counts())
 print("Final actions:\n", df_res["final_action"].value_counts())
 
 print("\n=== REPAIRED IMAGES (repair_applied == True, N=88) ===")
-rep = df_res[df_res["repair_applied"] == True]
+rep = df_res[df_res["repair_applied"]]
 print("Count:", len(rep))
 print("Quality improved:", rep["quality_improved"].sum())
 print("Quality worsened:", rep["quality_worsened"].sum())
@@ -101,5 +101,5 @@ dir_esc = df_res[df_res["repair_attempts"] == 0]
 print(dir_esc[["image_id", "init_action", "init_rule", "quality_before", "conf_before"]])
 
 print("\n=== REPAIR ATTEMPTED BUT NOT APPLIED (N=3) ===")
-not_app = df_res[(df_res["repair_attempts"] > 0) & (df_res["repair_applied"] == False)]
+not_app = df_res[(df_res["repair_attempts"] > 0) & (~df_res["repair_applied"])]
 print(not_app[["image_id", "init_action", "init_rule", "quality_before", "conf_before"]])

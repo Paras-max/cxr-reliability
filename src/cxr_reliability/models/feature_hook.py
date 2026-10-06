@@ -36,7 +36,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 # The layer name to hook — verified against the actual TXV DenseNet architecture
 # (features children: conv0 norm0 relu0 pool0 denseblock1..4 transition1..3 norm5)
 FEATURE_LAYER_NAME = "features.norm5"
@@ -65,7 +64,7 @@ class FeatureExtractor:
         self._hook_handle: Any = None
         self._captured: torch.Tensor | None = None
 
-    def __enter__(self) -> "FeatureExtractor":
+    def __enter__(self) -> FeatureExtractor:
         target = self._get_layer(self.layer_name)
         self._hook_handle = target.register_forward_hook(self._hook_fn)
         self._captured = None
@@ -113,7 +112,6 @@ class FeatureExtractor:
             try:
                 module = getattr(module, part)
             except AttributeError:
-                available = [n for n, _ in self.model.named_modules()]
                 raise ValueError(
                     f"Layer '{layer_name}' not found in model. "
                     f"Available top-level modules: "

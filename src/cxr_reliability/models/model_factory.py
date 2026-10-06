@@ -31,7 +31,6 @@ import torch
 from cxr_reliability.models.base_model import BaseModelAgent
 from cxr_reliability.models.feature_hook import FEATURE_LAYER_NAME
 
-
 # Registered model IDs and their metadata
 _MODEL_REGISTRY: dict[str, dict] = {
     "densenet121-res224-nih": {
@@ -60,12 +59,12 @@ def detect_device() -> str:
         device = "cuda"
         gpu_name = torch.cuda.get_device_name(0)
         print(f"  Device       : {device.upper()}")
-        print(f"  CUDA available: True")
+        print("  CUDA available: True")
         print(f"  GPU name     : {gpu_name}")
     else:
         device = "cpu"
-        print(f"  Device       : CPU")
-        print(f"  CUDA available: False")
+        print("  Device       : CPU")
+        print("  CUDA available: False")
     return device
 
 

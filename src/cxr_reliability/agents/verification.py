@@ -26,13 +26,13 @@ from typing import Any
 
 from cxr_reliability.agents.base import AgentBase
 from cxr_reliability.config.thresholds import VerificationThresholds
+from cxr_reliability.contracts.base_model import BaseModelResult
 from cxr_reliability.contracts.common import AgentName
 from cxr_reliability.contracts.decision import Action
 from cxr_reliability.contracts.ood import OODLevel, OODResult
 from cxr_reliability.contracts.quality import QualityLevel, QualityResult
 from cxr_reliability.contracts.repair import RepairResult
-from cxr_reliability.contracts.base_model import BaseModelResult
-from cxr_reliability.contracts.uncertainty import UncertaintyLevel, UncertaintyResult
+from cxr_reliability.contracts.uncertainty import UncertaintyResult
 from cxr_reliability.contracts.verification import (
     NextStep,
     SignalBundle,

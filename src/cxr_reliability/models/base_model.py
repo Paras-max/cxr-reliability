@@ -53,7 +53,7 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -63,7 +63,7 @@ import torch.nn as nn
 from cxr_reliability.agents.base import AgentBase
 from cxr_reliability.contracts.base_model import BaseModelResult
 from cxr_reliability.contracts.common import AgentName
-from cxr_reliability.models.feature_hook import FeatureExtractor, FEATURE_DIM, FEATURE_LAYER_NAME
+from cxr_reliability.models.feature_hook import FEATURE_DIM, FEATURE_LAYER_NAME, FeatureExtractor
 from cxr_reliability.models.txv_loader import load_txv_model, weights_sha256
 
 logger = logging.getLogger(__name__)
@@ -172,7 +172,9 @@ class BaseModelAgent(AgentBase):
         platt_file = calib_path / "platt_calibrator.joblib"
         if platt_file.exists():
             try:
-                from cxr_reliability.calibration.probability_calibration import ProbabilityCalibrator
+                from cxr_reliability.calibration.probability_calibration import (
+                    ProbabilityCalibrator,
+                )
                 self._calibrator = ProbabilityCalibrator.load(calib_path)
                 if getattr(self._calibrator, "_platt", None) is not None:
                     self.is_calibrated = True
@@ -378,8 +380,8 @@ class BaseModelAgent(AgentBase):
         All values are read from the actual loaded model or installed library.
         Nothing is fabricated.
         """
-        import torchxrayvision as xrv
         import torch as _torch
+        import torchxrayvision as xrv
 
         info: dict = {
             "model_name": self.model_id,

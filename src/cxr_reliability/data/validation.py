@@ -117,7 +117,7 @@ def validate_splits(
 
     # ── Check 1: No patient overlap ───────────────────────────────────────
     meta_id_to_patient = dict(
-        zip(meta_df["image_id"].astype(str), meta_df["patient_id"])
+        zip(meta_df["image_id"].astype(str), meta_df["patient_id"], strict=False)
     )
     split_patients: dict[str, set] = {}
     for split_name, sdf in split_dfs.items():

@@ -27,6 +27,7 @@ Test Coverage:
 from __future__ import annotations
 
 import math
+
 import numpy as np
 import pytest
 import torch
@@ -34,7 +35,7 @@ import torch
 from cxr_reliability.agents.uncertainty import UncertaintyAgent
 from cxr_reliability.contracts.base_model import BaseModelResult
 from cxr_reliability.contracts.common import AgentName
-from cxr_reliability.contracts.uncertainty import ConfidenceLevel, UncertaintyLevel, UncertaintyResult
+from cxr_reliability.contracts.uncertainty import UncertaintyLevel, UncertaintyResult
 from cxr_reliability.models.base_model import ModelForward
 from cxr_reliability.uncertainty import (
     UncertaintyConfig,
@@ -43,7 +44,6 @@ from cxr_reliability.uncertainty import (
     compute_binary_entropy,
     compute_normalized_entropy,
 )
-
 
 # ── Test 1 & 2: p = 0 and p = 1 entropy handling ──────────────────────────────
 

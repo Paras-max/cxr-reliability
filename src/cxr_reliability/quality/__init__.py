@@ -15,13 +15,13 @@ Modules:
 from __future__ import annotations
 
 from .blur import BlurResult, compute_blur_pct, compute_laplacian_variance, evaluate_blur
+from .evaluator import QualityConfig, QualityEvaluator, prepare_image_for_quality
 from .exposure import (
     ExposureResult,
     compute_exposure_statistics,
     evaluate_exposure,
 )
 from .noise import NoiseResult, compute_snr_db, estimate_noise_std, evaluate_noise
-from .evaluator import QualityConfig, QualityEvaluator, prepare_image_for_quality
 
 __all__ = [
     "BlurResult",

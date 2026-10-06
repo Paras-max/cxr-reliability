@@ -41,8 +41,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-import numpy as np
 import joblib
+import numpy as np
 from sklearn.calibration import calibration_curve
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
@@ -248,7 +248,7 @@ class ProbabilityCalibrator:
             joblib.dump(self._isotonic, output_dir / "isotonic_calibrator.joblib")
 
     @classmethod
-    def load(cls, output_dir: Path) -> "ProbabilityCalibrator":
+    def load(cls, output_dir: Path) -> ProbabilityCalibrator:
         """Load fitted calibrators from disk."""
         cal = cls()
         platt_path = output_dir / "platt_calibrator.joblib"

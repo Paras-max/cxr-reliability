@@ -20,6 +20,7 @@ Implementation phase: P0
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
 from pydantic import Field, model_validator
 
@@ -31,6 +32,12 @@ from .quality import QualityResult
 from .repair import RepairResult
 from .uncertainty import UncertaintyResult
 from .verification import VerificationResult
+
+
+class FinalClassification(str, Enum):
+    PNEUMONIA = "PNEUMONIA"
+    NO_PNEUMONIA = "NO_PNEUMONIA"
+    HUMAN_REVIEW_REQUIRED = "HUMAN_REVIEW_REQUIRED"
 
 
 class ReliabilityLabel(str, Enum):
@@ -84,6 +91,7 @@ class PipelineOutput(StrictModel):
     reliability_label: ReliabilityLabel
     final_action: Action
     needs_human_review: bool
+    final_classification: FinalClassification = Field(default=FinalClassification.HUMAN_REVIEW_REQUIRED)
 
     quality: QualityResult | None = None
     ood: OODResult | None = None
@@ -97,11 +105,49 @@ class PipelineOutput(StrictModel):
     total_latency_ms: float | None = Field(default=None, ge=0)
     disclaimer: str = DISCLAIMER
 
+    @model_validator(mode="before")
+    @classmethod
+    def _deduce_final_classification(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "final_classification" not in data or data["final_classification"] is None:
+                needs_hr = data.get("needs_human_review", False)
+                pred = data.get("prediction")
+                if needs_hr or pred is None:
+                    data["final_classification"] = FinalClassification.HUMAN_REVIEW_REQUIRED
+                else:
+                    pos = getattr(pred, "positive", None) if hasattr(pred, "positive") else (pred.get("positive") if isinstance(pred, dict) else None)
+                    if pos is True:
+                        data["final_classification"] = FinalClassification.PNEUMONIA
+                    elif pos is False:
+                        data["final_classification"] = FinalClassification.NO_PNEUMONIA
+                    else:
+                        prob = getattr(pred, "pneumonia_probability", None) if hasattr(pred, "pneumonia_probability") else (pred.get("pneumonia_probability") if isinstance(pred, dict) else None)
+                        if prob is None:
+                            prob = getattr(pred, "raw_model_score", None) if hasattr(pred, "raw_model_score") else (pred.get("raw_model_score") if isinstance(pred, dict) else None)
+                        thresh = getattr(pred, "decision_threshold", 0.522161) if hasattr(pred, "decision_threshold") else (pred.get("decision_threshold", 0.522161) if isinstance(pred, dict) else 0.522161)
+                        if thresh is None:
+                            thresh = 0.522161
+                        if prob is not None and prob >= thresh:
+                            data["final_classification"] = FinalClassification.PNEUMONIA
+                        elif prob is not None and prob < thresh:
+                            data["final_classification"] = FinalClassification.NO_PNEUMONIA
+                        else:
+                            data["final_classification"] = FinalClassification.HUMAN_REVIEW_REQUIRED
+        return data
+
     @model_validator(mode="after")
-    def _review_flag_matches_label(self) -> "PipelineOutput":
+    def _review_flag_matches_label(self) -> PipelineOutput:
         is_review_label = self.reliability_label == ReliabilityLabel.NEEDS_HUMAN_REVIEW
         if self.needs_human_review != is_review_label:
             raise ValueError("needs_human_review must be True exactly when the label is needs_human_review")
+        if self.needs_human_review and self.prediction is not None:
+            raise ValueError("Prediction must be withheld (None) whenever needs_human_review is True")
+        if self.final_classification in (FinalClassification.PNEUMONIA, FinalClassification.NO_PNEUMONIA):
+            if self.needs_human_review or self.prediction is None:
+                raise ValueError("final_classification cannot release diagnosis when needs_human_review is True")
+        elif self.final_classification == FinalClassification.HUMAN_REVIEW_REQUIRED:
+            if not self.needs_human_review:
+                raise ValueError("final_classification HUMAN_REVIEW_REQUIRED requires needs_human_review to be True")
         return self
 
 
@@ -118,6 +164,7 @@ class PipelineResult(StrictModel):
     final_action: Action
     reliability_label: ReliabilityLabel
     needs_human_review: bool
+    final_classification: FinalClassification = Field(default=FinalClassification.HUMAN_REVIEW_REQUIRED)
 
     prediction: PredictionSummary | None = None  # withheld when review is needed or error
     quality: QualityResult | None = None
@@ -141,8 +188,38 @@ class PipelineResult(StrictModel):
     error_message: str | None = None
     repaired_image_png: bytes | None = Field(default=None, exclude=True)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _deduce_final_classification(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "final_classification" not in data or data["final_classification"] is None:
+                needs_hr = data.get("needs_human_review", False)
+                pred = data.get("prediction")
+                if needs_hr or pred is None:
+                    data["final_classification"] = FinalClassification.HUMAN_REVIEW_REQUIRED
+                else:
+                    pos = getattr(pred, "positive", None) if hasattr(pred, "positive") else (pred.get("positive") if isinstance(pred, dict) else None)
+                    if pos is True:
+                        data["final_classification"] = FinalClassification.PNEUMONIA
+                    elif pos is False:
+                        data["final_classification"] = FinalClassification.NO_PNEUMONIA
+                    else:
+                        prob = getattr(pred, "pneumonia_probability", None) if hasattr(pred, "pneumonia_probability") else (pred.get("pneumonia_probability") if isinstance(pred, dict) else None)
+                        if prob is None:
+                            prob = getattr(pred, "raw_model_score", None) if hasattr(pred, "raw_model_score") else (pred.get("raw_model_score") if isinstance(pred, dict) else None)
+                        thresh = getattr(pred, "decision_threshold", 0.522161) if hasattr(pred, "decision_threshold") else (pred.get("decision_threshold", 0.522161) if isinstance(pred, dict) else 0.522161)
+                        if thresh is None:
+                            thresh = 0.522161
+                        if prob is not None and prob >= thresh:
+                            data["final_classification"] = FinalClassification.PNEUMONIA
+                        elif prob is not None and prob < thresh:
+                            data["final_classification"] = FinalClassification.NO_PNEUMONIA
+                        else:
+                            data["final_classification"] = FinalClassification.HUMAN_REVIEW_REQUIRED
+        return data
+
     @model_validator(mode="after")
-    def _validate_pipeline_result(self) -> "PipelineResult":
+    def _validate_pipeline_result(self) -> PipelineResult:
         is_review_label = self.reliability_label == ReliabilityLabel.NEEDS_HUMAN_REVIEW
         if self.needs_human_review != is_review_label:
             raise ValueError(
@@ -152,6 +229,12 @@ class PipelineResult(StrictModel):
             raise ValueError(
                 "Prediction must be withheld (None) whenever needs_human_review is True"
             )
+        if self.final_classification in (FinalClassification.PNEUMONIA, FinalClassification.NO_PNEUMONIA):
+            if self.needs_human_review or self.prediction is None:
+                raise ValueError("final_classification cannot release diagnosis when needs_human_review is True")
+        elif self.final_classification == FinalClassification.HUMAN_REVIEW_REQUIRED:
+            if not self.needs_human_review:
+                raise ValueError("final_classification HUMAN_REVIEW_REQUIRED requires needs_human_review to be True")
         return self
 
     def to_pipeline_output(self) -> PipelineOutput:
@@ -162,6 +245,7 @@ class PipelineResult(StrictModel):
             reliability_label=self.reliability_label,
             final_action=self.final_action,
             needs_human_review=self.needs_human_review,
+            final_classification=self.final_classification,
             quality=self.quality,
             ood=self.ood,
             base_model=self.base_model,

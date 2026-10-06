@@ -15,7 +15,7 @@ confidence and entropy thresholds are uncalibrated development defaults.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any

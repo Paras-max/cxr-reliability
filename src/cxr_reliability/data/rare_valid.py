@@ -25,5 +25,5 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-def select_rare_valid_cases(metadata: "pd.DataFrame", seed: int) -> list[str]:
+def select_rare_valid_cases(metadata: pd.DataFrame, seed: int) -> list[str]:
     raise NotImplementedError("Phase 1: criteria need owner sign-off")

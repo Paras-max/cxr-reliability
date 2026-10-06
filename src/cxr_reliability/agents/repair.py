@@ -24,7 +24,7 @@ Implementation phase: P9
 from __future__ import annotations
 
 import time
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 import torch

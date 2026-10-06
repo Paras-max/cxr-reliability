@@ -116,7 +116,7 @@ def assert_no_patient_overlap(
     test would invalidate evaluation results.
     """
     id_to_patient: dict[str, int] = dict(
-        zip(metadata["image_id"], metadata["patient_id"])
+        zip(metadata["image_id"], metadata["patient_id"], strict=False)
     )
 
     split_patients: dict[str, set] = {}

@@ -146,13 +146,15 @@ def _write_txt_report(report: dict, path: Path) -> None:
 
 def main() -> None:
     import datetime
+
     import pandas as pd
+
+    from cxr_reliability.data.manifests import write_manifest
     from cxr_reliability.data.splits import (
-        build_patient_level_splits,
         assert_no_patient_overlap,
+        build_patient_level_splits,
         compute_split_stats,
     )
-    from cxr_reliability.data.manifests import write_manifest
 
     print()
     print("=" * 70)
@@ -205,7 +207,7 @@ def main() -> None:
         sys.exit(3)
 
     # Compute overlap counts for report
-    id_to_patient = dict(zip(meta["image_id"].astype(str), meta["patient_id"]))
+    id_to_patient = dict(zip(meta["image_id"].astype(str), meta["patient_id"], strict=False))
     split_patients = {
         name: {id_to_patient[iid] for iid in ids if iid in id_to_patient}
         for name, ids in splits.items()

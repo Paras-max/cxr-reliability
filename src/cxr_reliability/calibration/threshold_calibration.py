@@ -31,14 +31,13 @@ Implementation phase: P4.5
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
-    auc,
     average_precision_score,
     precision_recall_curve,
     roc_auc_score,
@@ -282,7 +281,7 @@ def plot_threshold_analysis(
         ("balanced_accuracy", "Balanced Accuracy",  "#F44336"),
     ]
 
-    for ax, (col, label, color) in zip(axes, panels):
+    for ax, (col, label, color) in zip(axes, panels, strict=False):
         ax.plot(thr, df[col].values, color=color, linewidth=1.8)
         ax.axvline(x=selected_threshold, **vline_kw)
         ax.set_ylabel(label, fontsize=11)

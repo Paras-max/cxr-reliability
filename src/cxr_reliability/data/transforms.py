@@ -10,10 +10,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from cxr_reliability.models.preprocessing import load_image_for_txv as _load_txv
 
-
-def to_txv_input(image: "np.ndarray", target_size: int) -> "np.ndarray":
+def to_txv_input(image: np.ndarray, target_size: int) -> np.ndarray:
     """
     Convert a numpy image array to TXV-normalized format.
 
@@ -31,7 +29,6 @@ def to_txv_input(image: "np.ndarray", target_size: int) -> "np.ndarray":
     all format conversions and error handling automatically.
     """
     from PIL import Image as PILImage
-    import torch
 
     arr = np.array(image, dtype=np.float32)
 
@@ -53,7 +50,7 @@ def to_txv_input(image: "np.ndarray", target_size: int) -> "np.ndarray":
     return out[np.newaxis, np.newaxis, :, :]
 
 
-def to_quality_grayscale(image: "np.ndarray") -> "np.ndarray":
+def to_quality_grayscale(image: np.ndarray) -> np.ndarray:
     """
     Return a standardised uint8 grayscale view of an image.
     Used by the Quality Agent (Phase 5) for blur/artefact detection.

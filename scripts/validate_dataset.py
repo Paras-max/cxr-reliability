@@ -114,7 +114,7 @@ def _build_image_index() -> dict[str, Path]:
     Memory-efficient: we only store Path objects, not pixel data.
     """
     index: dict[str, Path] = {}
-    for dir_name, dir_path in _resolve_image_dirs().items():
+    for dir_path in _resolve_image_dirs().values():
         if not dir_path.exists():
             continue
         images_subdir = dir_path / "images"

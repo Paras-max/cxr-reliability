@@ -41,8 +41,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-import torch
-
 from cxr_reliability.agents.base import AgentBase
 from cxr_reliability.config.thresholds import OODThresholds
 from cxr_reliability.contracts.common import AgentName

@@ -56,7 +56,6 @@ try:
         else (_PROJECT_ROOT / _s.data_dir).resolve()
     )
 except Exception as _e:
-    import os
     print(f"[WARN] Could not load settings ({_e}). Falling back to defaults.")
     _DATASET_ROOT = (_PROJECT_ROOT / "dataset").resolve()
     _DATA_DIR = (_PROJECT_ROOT / "data").resolve()
@@ -67,6 +66,7 @@ _CSV_PATH = _DATASET_ROOT / "Data_Entry_2017.csv"
 
 def main() -> None:
     import datetime
+
     from cxr_reliability.data.nih import load_metadata
     from cxr_reliability.data.preprocessing import clean_metadata
 

@@ -62,7 +62,7 @@ from PIL import Image
 from cxr_reliability.contracts.common import DISCLAIMER
 from cxr_reliability.contracts.decision import Action, DecisionResult, DecisionState
 from cxr_reliability.contracts.pipeline import (
-    PipelineOutput,
+    FinalClassification,
     PipelineResult,
     PipelineState,
     PredictionSummary,
@@ -242,6 +242,7 @@ class ReliabilityPipeline:
                 final_action=Action.REJECT,
                 reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                 needs_human_review=True,
+                final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                 prediction=None,
                 reason=f"Pipeline rejected invalid input: {exc}. Research prototype only.",
                 error_message=str(exc),
@@ -302,12 +303,14 @@ class ReliabilityPipeline:
                     f"Uncertainty is {uncertainty_res.uncertainty_level.value}. "
                     "Research prototype only; not a clinical diagnosis."
                 )
+                classification = FinalClassification.PNEUMONIA if pred.positive else FinalClassification.NO_PNEUMONIA
                 res = PipelineResult(
                     audit_id=audit_id,
                     pipeline_state=PipelineState.ACCEPT,
                     final_action=Action.ACCEPT,
                     reliability_label=ReliabilityLabel.ACCEPTED,
                     needs_human_review=False,
+                    final_classification=classification,
                     prediction=pred,
                     quality=quality_res,
                     ood=ood_res,
@@ -335,6 +338,7 @@ class ReliabilityPipeline:
                     final_action=Action.ESCALATE,
                     reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                     needs_human_review=True,
+                    final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                     prediction=None,
                     quality=quality_res,
                     ood=ood_res,
@@ -362,6 +366,7 @@ class ReliabilityPipeline:
                     final_action=Action.REJECT,
                     reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                     needs_human_review=True,
+                    final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                     prediction=None,
                     quality=quality_res,
                     ood=ood_res,
@@ -390,6 +395,7 @@ class ReliabilityPipeline:
                         final_action=Action.ESCALATE,
                         reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                         needs_human_review=True,
+                        final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                         prediction=None,
                         quality=quality_res,
                         ood=ood_res,
@@ -437,6 +443,7 @@ class ReliabilityPipeline:
                         final_action=Action.ESCALATE,
                         reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                         needs_human_review=True,
+                        final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                         prediction=None,
                         quality=quality_res,
                         ood=ood_res,
@@ -523,12 +530,14 @@ class ReliabilityPipeline:
                         f"quality gain={verification_res.delta_quality:+.4f}. Released after repair. "
                         "Research prototype only; not a clinical diagnosis."
                     )
+                    classification = FinalClassification.PNEUMONIA if pred.positive else FinalClassification.NO_PNEUMONIA
                     res = PipelineResult(
                         audit_id=audit_id,
                         pipeline_state=PipelineState.VERIFIED,
                         final_action=Action.ACCEPT,
                         reliability_label=ReliabilityLabel.ACCEPTED_AFTER_REPAIR,
                         needs_human_review=False,
+                        final_classification=classification,
                         prediction=pred,
                         quality=quality_res,
                         ood=ood_res,
@@ -562,6 +571,7 @@ class ReliabilityPipeline:
                         final_action=Action.REJECT,
                         reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                         needs_human_review=True,
+                        final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                         prediction=None,
                         quality=quality_res,
                         ood=ood_res,
@@ -596,6 +606,7 @@ class ReliabilityPipeline:
                         final_action=Action.ESCALATE,
                         reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                         needs_human_review=True,
+                        final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                         prediction=None,
                         quality=quality_res,
                         ood=ood_res,
@@ -626,6 +637,7 @@ class ReliabilityPipeline:
                 final_action=Action.ESCALATE,
                 reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                 needs_human_review=True,
+                final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                 prediction=None,
                 quality=quality_res,
                 ood=ood_res,
@@ -649,6 +661,7 @@ class ReliabilityPipeline:
                 final_action=Action.ESCALATE,
                 reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                 needs_human_review=True,
+                final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
                 prediction=None,
                 error_message=str(exc),
                 reason=f"Pipeline execution error: {exc}. Safely routed to human review.",

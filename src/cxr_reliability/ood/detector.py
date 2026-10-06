@@ -249,7 +249,7 @@ class OODDetector:
         feature_matrix: np.ndarray,
         model_id: str = "densenet121-res224-nih",
         split: str = "train",
-    ) -> "OODDetector":
+    ) -> OODDetector:
         """
         Fit the reference distribution from a feature matrix.
 
@@ -347,7 +347,7 @@ class OODDetector:
             meta.update(extra_metadata)
         return save_stats(self._stats, output_dir, extra_metadata=meta)  # type: ignore[arg-type]
 
-    def load_stats(self, stats_dir: Path) -> "OODDetector":
+    def load_stats(self, stats_dir: Path) -> OODDetector:
         """Load pre-fitted statistics from disk."""
         self._stats = load_stats(stats_dir)
 

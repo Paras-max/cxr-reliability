@@ -52,7 +52,6 @@ try:
         else (_PROJECT_ROOT / _s.data_dir).resolve()
     )
 except Exception as _e:
-    import os
     print(f"[WARN] Could not load settings ({_e}). Using defaults.")
     _DATASET_ROOT = (_PROJECT_ROOT / "dataset").resolve()
     _DATA_DIR = (_PROJECT_ROOT / "data").resolve()
