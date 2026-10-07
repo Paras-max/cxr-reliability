@@ -40,6 +40,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+# pyrefly: ignore [missing-source-for-stubs]
 import seaborn as sns
 from PIL import Image
 

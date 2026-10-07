@@ -51,6 +51,7 @@ from cxr_reliability.dashboard.components import (
     render_human_review_banner,
     render_ood_section,
     render_pneumonia_classification,
+    render_probability_before_after,
     render_quality_section,
     render_repair_section,
     render_sidebar,
@@ -294,6 +295,9 @@ def main() -> None:
         # Human Review Alert (if required)
         render_human_review_banner(result)
 
+        # Pneumonia Probability — Before vs After (additive requirement)
+        render_probability_before_after(result)
+
         # Top-level result summary
         render_final_result(result)
 
@@ -301,7 +305,11 @@ def main() -> None:
         if result.repair is not None and result.repair.repair_applied:
             st.divider()
             render_repair_section(result.repair, saved_img, result.repaired_image_png)
-            render_verification_section(result.verification)
+            render_verification_section(
+                result.verification,
+                quality_before=result.quality,
+                quality_after=result.after_repair_quality,
+            )
 
         # Detailed agent inspection tabs
         st.divider()

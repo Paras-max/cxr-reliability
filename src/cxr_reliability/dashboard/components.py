@@ -107,6 +107,110 @@ def render_pneumonia_classification(result: PipelineResult) -> None:
         )
 
 
+def render_probability_before_after(result: PipelineResult) -> None:
+    """Render Initial vs Final Pneumonia Probability section and threshold visualization (additive)."""
+    st.subheader("Pneumonia Probability — Before vs After")
+
+    init_prob = getattr(result, "initial_pneumonia_probability", None)
+    if init_prob is None and result.base_model is not None:
+        init_prob = float(getattr(result.base_model, "raw_pneumonia_score", result.base_model.pneumonia_probability))
+
+    final_prob = getattr(result, "final_pneumonia_probability", None)
+    if final_prob is None:
+        if result.after_repair_base_model is not None:
+            final_prob = float(getattr(result.after_repair_base_model, "raw_pneumonia_score", result.after_repair_base_model.pneumonia_probability))
+        elif init_prob is not None:
+            final_prob = init_prob
+
+    delta = getattr(result, "probability_delta", None)
+    if delta is None and final_prob is not None and init_prob is not None:
+        delta = final_prob - init_prob
+
+    thresh = 0.522161
+
+    init_class = getattr(result, "initial_classification", None)
+    if init_class is None and init_prob is not None:
+        init_class = "Pneumonia" if init_prob >= thresh else "No Pneumonia"
+
+    final_class_raw = getattr(result, "final_classification", None)
+    if final_class_raw is not None:
+        final_class = final_class_raw.value if hasattr(final_class_raw, "value") else str(final_class_raw)
+    else:
+        final_class = "HUMAN_REVIEW_REQUIRED" if result.needs_human_review else (
+            "PNEUMONIA" if (result.prediction and result.prediction.positive) else "NO_PNEUMONIA"
+        )
+
+    init_str = f"{init_prob * 100:.2f}%" if init_prob is not None else "N/A"
+    final_str = f"{final_prob * 100:.2f}%" if final_prob is not None else "N/A"
+    if delta is not None:
+        delta_pp = delta * 100.0
+        delta_str = f"{delta_pp:+.2f} percentage points"
+    else:
+        delta_str = "0.00 percentage points"
+
+    col_tbl, col_meta = st.columns([3, 2])
+    with col_tbl:
+        table_md = f"""
+| Prediction Stage | Pneumonia Probability |
+|:---|---:|
+| **Initial DenseNet** | `{init_str}` |
+| **Final Pipeline Output** | `{final_str}` |
+| **Change** | `{delta_str}` |
+"""
+        st.markdown(table_md)
+
+    with col_meta:
+        st.markdown(f"**Initial Classification:** `{init_class or 'N/A'}`")
+        st.markdown(f"**Final Classification:** `{final_class}`")
+        st.markdown(f"**Operating Threshold:** `52.2161%` (0.522161)")
+
+    # ── Threshold Visualization ──────────────────────────────────────────────
+    if init_prob is not None and final_prob is not None:
+        init_pct = max(0.0, min(100.0, init_prob * 100.0))
+        final_pct = max(0.0, min(100.0, final_prob * 100.0))
+        thresh_pct = 52.2161
+
+        viz_html = f"""
+        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; padding: 16px 20px; margin: 12px 0 20px 0;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px;">
+                <span>0%</span>
+                <span style="color: #f59e0b;">Operating Threshold: 52.2161%</span>
+                <span>100%</span>
+            </div>
+            <div style="position: relative; height: 16px; background: #262730; border-radius: 8px; margin: 12px 0 24px 0;">
+                <div style="position: absolute; left: {thresh_pct}%; top: -6px; bottom: -6px; width: 3px; background: #f59e0b; border-radius: 2px; z-index: 2;"></div>
+                <div style="position: absolute; left: {init_pct}%; top: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; border-radius: 50%; background: #3b82f6; border: 2px solid #ffffff; z-index: 3;" title="Initial: {init_str}"></div>
+                <div style="position: absolute; left: {final_pct}%; top: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; border-radius: 50%; background: #10b981; border: 2px solid #ffffff; z-index: 4;" title="Final: {final_str}"></div>
+            </div>
+            <div style="display: flex; gap: 20px; font-size: 0.82rem; justify-content: center; flex-wrap: wrap;">
+                <div><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; margin-right: 5px;"></span>Initial: <strong>{init_str}</strong></div>
+                <div><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; margin-right: 5px;"></span>Final: <strong>{final_str}</strong></div>
+                <div><span style="display: inline-block; width: 3px; height: 10px; background: #f59e0b; margin-right: 5px;"></span>Threshold: <strong>52.2161%</strong></div>
+            </div>
+        </div>
+        """
+        st.markdown(viz_html, unsafe_allow_html=True)
+
+    # ── Final Output Table ───────────────────────────────────────────────────
+    init_quality = result.quality.overall.value.upper() if result.quality else "N/A"
+    final_quality = result.after_repair_quality.overall.value.upper() if result.after_repair_quality else init_quality
+    init_decision = result.decision_history[0].action.value.upper() if result.decision_history else "N/A"
+    final_decision = result.decision_history[-1].action.value.upper() if result.decision_history else "N/A"
+    final_action = result.final_action.value.upper() if result.final_action else "N/A"
+
+    output_table_md = f"""
+| Output | Before | After |
+|:---|:---|:---|
+| **Pneumonia Probability** | {init_str} | {final_str} |
+| **Classification** | {init_class or 'N/A'} | {final_class} |
+| **Image Quality** | {init_quality} | {final_quality} |
+| **Decision** | {init_decision} | {final_decision} |
+| **Final Action** | — | {final_action} |
+"""
+    with st.expander("Comprehensive Before vs After Summary Table", expanded=True):
+        st.markdown(output_table_md)
+
+
 def render_disclaimer_banner() -> None:
     """Render the persistent research prototype disclaimer banner."""
     st.warning(f"🔬 **{RESEARCH_DISCLAIMER_TEXT}**")
@@ -425,19 +529,91 @@ def render_repair_section(
             st.caption("Repaired image preview unavailable.")
 
 
-def render_verification_section(verification: VerificationResult | None) -> None:
-    """Render delta verification outcome."""
+def _extract_quality_label(obj: Any) -> str | None:
+    """Extract uppercase categorical quality label (e.g. POOR, DEGRADED, GOOD)."""
+    if obj is None:
+        return None
+    if hasattr(obj, "value"):
+        return str(obj.value).upper()
+    if hasattr(obj, "overall"):
+        val = getattr(obj.overall, "value", obj.overall)
+        return str(val).upper()
+    if hasattr(obj, "label") and isinstance(obj.label, str):
+        val = obj.label.strip().upper()
+        if val in ("POOR", "DEGRADED", "GOOD"):
+            return val
+    if isinstance(obj, str):
+        val = obj.strip().upper()
+        if val in ("POOR", "DEGRADED", "GOOD"):
+            return val
+    return None
+
+
+def render_verification_section(
+    verification: VerificationResult | None,
+    quality_before: QualityResult | None = None,
+    quality_after: QualityResult | None = None,
+) -> None:
+    """Render delta verification outcome with categorical quality transition."""
     if verification is None:
         return
 
     st.subheader("Post-Repair Verification")
+
+    # 1. Resolve categorical quality before and after
+    q_before = _extract_quality_label(quality_before)
+    q_after = _extract_quality_label(quality_after)
+
+    if q_before is None:
+        q_before = _extract_quality_label(getattr(verification, "quality_level_before", None))
+    if q_after is None:
+        q_after = _extract_quality_label(getattr(verification, "quality_level_after", None))
+
+    if q_before is None:
+        q_before = _extract_quality_label(getattr(verification, "quality_before", None))
+    if q_after is None:
+        q_after = _extract_quality_label(getattr(verification, "quality_after", None))
+
+    # Fallback to parsing verification reasoning if not directly populated on objects
+    reasoning = getattr(verification, "reasoning", "") or ""
+    if q_before is None or q_after is None:
+        import re
+
+        m = re.search(r"\b(POOR|DEGRADED|GOOD)\s*(?:->|→|to)\s*(POOR|DEGRADED|GOOD)\b", reasoning, re.IGNORECASE)
+        if m:
+            if q_before is None:
+                q_before = m.group(1).upper()
+            if q_after is None:
+                q_after = m.group(2).upper()
+        else:
+            m_to = re.search(r"improved to\s+(POOR|DEGRADED|GOOD)", reasoning, re.IGNORECASE)
+            if m_to and q_after is None:
+                q_after = m_to.group(1).upper()
+                if q_before is None:
+                    q_before = "POOR"
+            m_rem = re.search(r"remained\s+(POOR|DEGRADED|GOOD)", reasoning, re.IGNORECASE)
+            if m_rem:
+                lvl = m_rem.group(1).upper()
+                if q_before is None:
+                    q_before = lvl
+                if q_after is None:
+                    q_after = lvl
+
+    # Safe defaults if neither contracts nor reasoning explicitly specify levels
+    if q_before is None:
+        q_before = "POOR" if getattr(verification, "delta_quality", 0.0) != 0 else "UNKNOWN"
+    if q_after is None:
+        q_after = "GOOD" if getattr(verification, "verified", False) else q_before
+
+    transition_str = f"{q_before} → {q_after}"
+
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric("Verification Status", verification.status.value.upper())
     with c2:
         st.metric("Confidence Gain", f"{verification.delta_confidence:+.4f}")
     with c3:
-        st.metric("Quality Gain", f"{verification.delta_quality:+.2f}")
+        st.metric("Quality Transition", transition_str)
     with c4:
         st.metric("Next Step", verification.next_step.value.upper())
 

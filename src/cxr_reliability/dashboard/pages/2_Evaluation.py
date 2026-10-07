@@ -280,6 +280,67 @@ def main() -> None:
                 st.write(f"- Repaired Intensity: **{intens.get('mean_intensity_repaired', 0):.1f}**")
                 st.caption(s_exp.get("disclaimer", ""))
 
+        st.markdown("---")
+        st.subheader("Experimental Repair Diagnostic Impact")
+        st.caption("Experimental Paired Validation: Testing whether fresh DenseNet-121 inference after Repair Agent processing improves pneumonia classification. (Clearly labeled: Experimental Paired Validation; not the full test set).")
+
+        paired_diag_path = PROJECT_ROOT / "outputs" / "final_paired_repair_diagnostic_summary.json"
+        if paired_diag_path.exists():
+            try:
+                with open(paired_diag_path, encoding="utf-8") as f:
+                    diag_summary = json.load(f)
+
+                sm = diag_summary.get("sample_size", {})
+                bm = diag_summary.get("before_metrics", {})
+                am = diag_summary.get("after_metrics", {})
+                deltas = diag_summary.get("metric_deltas", {})
+                transitions = diag_summary.get("four_transitions", {})
+                stab = diag_summary.get("prediction_stability_pct", 100.0)
+                rt_breakdown = diag_summary.get("repair_type_breakdown", {})
+
+                st.markdown(f"**Cohort Overview:** Total Candidates: **{sm.get('candidate_count', 0)}** | Repaired: **{sm.get('repair_applied_count', 0)}** | Skipped: **{sm.get('repair_skipped_count', 0)}**")
+
+                col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+                with col_m1:
+                    st.metric("Before Accuracy", f"{bm.get('accuracy', 0)*100:.2f}%")
+                with col_m2:
+                    st.metric("After Accuracy", f"{am.get('accuracy', 0)*100:.2f}%")
+                with col_m3:
+                    st.metric("Accuracy Delta", f"{deltas.get('accuracy_delta', 0)*100:+.2f}%")
+                with col_m4:
+                    st.metric("Prediction Stability", f"{stab:.1f}%")
+
+                st.markdown("#### Four-Way Diagnostic Transitions")
+                col_t1, col_t2, col_t3, col_t4 = st.columns(4)
+                with col_t1:
+                    st.metric("Correct → Correct", f"{transitions.get('Correct->Correct', 0)}")
+                with col_t2:
+                    st.metric("Correct → Incorrect", f"{transitions.get('Correct->Incorrect', 0)}", delta="Harmful", delta_color="inverse")
+                with col_t3:
+                    st.metric("Incorrect → Correct", f"{transitions.get('Incorrect->Correct', 0)}", delta="Helpful", delta_color="normal")
+                with col_t4:
+                    st.metric("Incorrect → Incorrect", f"{transitions.get('Incorrect->Incorrect', 0)}")
+
+                st.markdown("#### Repair Type Breakdown")
+                rows_rt = []
+                for rtype, rdata in rt_breakdown.items():
+                    rows_rt.append({
+                        "Repair Type": rtype.capitalize(),
+                        "N": rdata.get("n", 0),
+                        "Accuracy Before": f"{rdata.get('accuracy_before', 0)*100:.1f}%",
+                        "Accuracy After": f"{rdata.get('accuracy_after', 0)*100:.1f}%",
+                        "Accuracy Delta": f"{rdata.get('accuracy_delta', 0)*100:+.1f}%",
+                        "Incorrect → Correct": rdata.get("incorrect_to_correct", 0),
+                        "Correct → Incorrect": rdata.get("correct_to_incorrect", 0),
+                        "Stability Rate": f"{rdata.get('prediction_stability', 100.0):.1f}%",
+                        "Note": rdata.get("note", ""),
+                    })
+                if rows_rt:
+                    st.dataframe(pd.DataFrame(rows_rt), use_container_width=True, hide_index=True)
+
+            except Exception as e:
+                st.error(f"Error loading paired diagnostic summary: {e}")
+
     # TAB 4: Safety & Confusion Matrices
     with tab4:
         st.subheader("Confusion Matrices Across Populations")

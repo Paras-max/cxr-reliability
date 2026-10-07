@@ -542,3 +542,58 @@ def calculate_safety_filtering(
             else 0.0,
         },
     }
+
+
+def analyze_probability_shift(
+    initial_probabilities: np.ndarray | list[float],
+    final_probabilities: np.ndarray | list[float],
+    threshold: float = 0.522161,
+) -> dict[str, Any]:
+    """
+    Analyze observable initial vs final DenseNet pneumonia probability shifts and classifications.
+
+    Parameters
+    ----------
+    initial_probabilities : 1D array of initial DenseNet probabilities.
+    final_probabilities : 1D array of final pipeline DenseNet probabilities.
+    threshold : float operating threshold (default: 0.522161).
+
+    Returns
+    -------
+    dict with sample size, mean initial/final probability, mean delta (percentage points),
+    distributions of positive, negative, and zero shifts, and classification concordance.
+    """
+    p_init = np.asarray(initial_probabilities, dtype=float)
+    p_final = np.asarray(final_probabilities, dtype=float)
+
+    if len(p_init) != len(p_final):
+        raise ValueError(f"Length mismatch: {len(p_init)} initial vs {len(p_final)} final")
+
+    n = len(p_init)
+    if n == 0:
+        return {"n_samples": 0}
+
+    deltas = p_final - p_init
+    deltas_pp = deltas * 100.0  # percentage points
+
+    init_classes = (p_init >= threshold).astype(int)
+    final_classes = (p_final >= threshold).astype(int)
+    concordant = int(np.sum(init_classes == final_classes))
+
+    pos_shifts = int(np.sum(deltas > 1e-7))
+    neg_shifts = int(np.sum(deltas < -1e-7))
+    zero_shifts = n - (pos_shifts + neg_shifts)
+
+    return {
+        "n_samples": n,
+        "operating_threshold": threshold,
+        "mean_initial_probability": float(np.mean(p_init)),
+        "mean_final_probability": float(np.mean(p_final)),
+        "mean_delta_percentage_points": float(np.mean(deltas_pp)),
+        "median_delta_percentage_points": float(np.median(deltas_pp)),
+        "positive_shifts_count": pos_shifts,
+        "negative_shifts_count": neg_shifts,
+        "zero_shifts_count": zero_shifts,
+        "classification_concordance_count": concordant,
+        "classification_concordance_pct": float(concordant / n * 100.0),
+    }

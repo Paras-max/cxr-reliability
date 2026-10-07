@@ -302,8 +302,54 @@ def test_repair_verified_result_renders():
         render_final_result(result)
         render_verification_section(result.verification)
 
+        metric_labels = [c.args[0] for c in mock_metric.call_args_list if len(c.args) >= 1]
         metric_values = [c.args[1] for c in mock_metric.call_args_list if len(c.args) >= 2]
         assert "VERIFIED" in metric_values
+        assert "Quality Transition" in metric_labels
+
+
+def test_quality_transition_display_support_all_transitions():
+    """Verify Quality Transition displays all categorical transitions correctly."""
+    from cxr_reliability.contracts.verification import VerificationResult, VerificationStatus, NextStep
+    from cxr_reliability.contracts.quality import QualityLevel
+    from cxr_reliability.contracts.common import AgentName
+    from cxr_reliability.dashboard.components import render_verification_section
+
+    transitions_to_test = [
+        (QualityLevel.POOR, QualityLevel.GOOD, "POOR → GOOD"),
+        (QualityLevel.POOR, QualityLevel.DEGRADED, "POOR → DEGRADED"),
+        (QualityLevel.POOR, QualityLevel.POOR, "POOR → POOR"),
+        (QualityLevel.DEGRADED, QualityLevel.GOOD, "DEGRADED → GOOD"),
+        (QualityLevel.DEGRADED, QualityLevel.DEGRADED, "DEGRADED → DEGRADED"),
+        (QualityLevel.GOOD, QualityLevel.GOOD, "GOOD → GOOD"),
+        (QualityLevel.GOOD, QualityLevel.DEGRADED, "GOOD → DEGRADED"),
+        (QualityLevel.GOOD, QualityLevel.POOR, "GOOD → POOR"),
+    ]
+
+    for q_before_lvl, q_after_lvl, expected_str in transitions_to_test:
+        ver = VerificationResult(
+            agent=AgentName.VERIFICATION,
+            version="0.10.0",
+            verified=(q_after_lvl == QualityLevel.GOOD),
+            status=VerificationStatus.VERIFIED if q_after_lvl == QualityLevel.GOOD else VerificationStatus.ESCALATE,
+            next_step=NextStep.RELEASE if q_after_lvl == QualityLevel.GOOD else NextStep.ESCALATE,
+            delta_confidence=0.05,
+            delta_quality=10.0,
+            delta_ood=0.0,
+            label="verified" if q_after_lvl == QualityLevel.GOOD else "escalate",
+            label_flipped=False,
+            min_confidence_gain_used=-0.01,
+            threshold_is_provisional=True,
+            quality_level_before=q_before_lvl,
+            quality_level_after=q_after_lvl,
+            reasoning=f"Tested transition {expected_str}",
+        )
+        with patch("streamlit.metric") as mock_metric, patch("streamlit.columns") as mock_cols:
+            mock_cols.return_value = [MagicMock(), MagicMock(), MagicMock(), MagicMock()]
+            render_verification_section(ver)
+            call_dict = {c.args[0]: c.args[1] for c in mock_metric.call_args_list if len(c.args) >= 2}
+            assert "Quality Transition" in call_dict
+            assert call_dict["Quality Transition"] == expected_str
 
 
 # ── 6. ESCALATE Result Renders ───────────────────────────────────────────────

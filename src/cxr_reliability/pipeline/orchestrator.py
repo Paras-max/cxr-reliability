@@ -271,6 +271,19 @@ class ReliabilityPipeline:
             features = getattr(model_fwd, "features", None)
             raw_probs = getattr(model_fwd, "raw_probs", None)
 
+            # ── Initial Pneumonia Probability & Classification ────────────────
+            init_prob: float | None = None
+            init_class: str | None = None
+            if base_model_res is not None:
+                init_prob = float(
+                    getattr(
+                        base_model_res,
+                        "raw_pneumonia_score",
+                        getattr(base_model_res, "pneumonia_probability", 0.0),
+                    )
+                )
+                init_class = "Pneumonia" if init_prob >= self.RAW_OPERATING_THRESHOLD else "No Pneumonia"
+
             # ── Step 4: Initial OOD & Uncertainty Evaluation ─────────────────
             t0 = time.perf_counter()
             ood_res = self.ood_agent.run(features=features, raw_probs=raw_probs, image_id=audit_id)
@@ -311,6 +324,10 @@ class ReliabilityPipeline:
                     reliability_label=ReliabilityLabel.ACCEPTED,
                     needs_human_review=False,
                     final_classification=classification,
+                    initial_pneumonia_probability=init_prob,
+                    final_pneumonia_probability=init_prob,
+                    probability_delta=0.0,
+                    initial_classification=init_class,
                     prediction=pred,
                     quality=quality_res,
                     ood=ood_res,
@@ -339,6 +356,10 @@ class ReliabilityPipeline:
                     reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                     needs_human_review=True,
                     final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
+                    initial_pneumonia_probability=init_prob,
+                    final_pneumonia_probability=init_prob,
+                    probability_delta=0.0,
+                    initial_classification=init_class,
                     prediction=None,
                     quality=quality_res,
                     ood=ood_res,
@@ -367,6 +388,10 @@ class ReliabilityPipeline:
                     reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                     needs_human_review=True,
                     final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
+                    initial_pneumonia_probability=init_prob,
+                    final_pneumonia_probability=init_prob,
+                    probability_delta=0.0,
+                    initial_classification=init_class,
                     prediction=None,
                     quality=quality_res,
                     ood=ood_res,
@@ -396,6 +421,10 @@ class ReliabilityPipeline:
                         reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                         needs_human_review=True,
                         final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
+                        initial_pneumonia_probability=init_prob,
+                        final_pneumonia_probability=init_prob,
+                        probability_delta=0.0,
+                        initial_classification=init_class,
                         prediction=None,
                         quality=quality_res,
                         ood=ood_res,
@@ -444,6 +473,10 @@ class ReliabilityPipeline:
                         reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                         needs_human_review=True,
                         final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
+                        initial_pneumonia_probability=init_prob,
+                        final_pneumonia_probability=init_prob,
+                        probability_delta=0.0,
+                        initial_classification=init_class,
                         prediction=None,
                         quality=quality_res,
                         ood=ood_res,
@@ -486,6 +519,16 @@ class ReliabilityPipeline:
                 after_base_model = after_fwd.result if hasattr(after_fwd, "result") else after_fwd
                 after_features = getattr(after_fwd, "features", None)
                 after_probs = getattr(after_fwd, "raw_probs", None)
+
+                # Capture final DenseNet probability from fresh post-repair inference & delta
+                after_prob = float(
+                    getattr(
+                        after_base_model,
+                        "raw_pneumonia_score",
+                        getattr(after_base_model, "pneumonia_probability", 0.0),
+                    )
+                )
+                delta_p = after_prob - init_prob if init_prob is not None else 0.0
 
                 t0 = time.perf_counter()
                 after_ood = self.ood_agent.run(
@@ -538,6 +581,10 @@ class ReliabilityPipeline:
                         reliability_label=ReliabilityLabel.ACCEPTED_AFTER_REPAIR,
                         needs_human_review=False,
                         final_classification=classification,
+                        initial_pneumonia_probability=init_prob,
+                        final_pneumonia_probability=after_prob,
+                        probability_delta=delta_p,
+                        initial_classification=init_class,
                         prediction=pred,
                         quality=quality_res,
                         ood=ood_res,
@@ -572,6 +619,10 @@ class ReliabilityPipeline:
                         reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                         needs_human_review=True,
                         final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
+                        initial_pneumonia_probability=init_prob,
+                        final_pneumonia_probability=after_prob,
+                        probability_delta=delta_p,
+                        initial_classification=init_class,
                         prediction=None,
                         quality=quality_res,
                         ood=ood_res,
@@ -607,6 +658,10 @@ class ReliabilityPipeline:
                         reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                         needs_human_review=True,
                         final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
+                        initial_pneumonia_probability=init_prob,
+                        final_pneumonia_probability=after_prob,
+                        probability_delta=delta_p,
+                        initial_classification=init_class,
                         prediction=None,
                         quality=quality_res,
                         ood=ood_res,
@@ -638,6 +693,10 @@ class ReliabilityPipeline:
                 reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                 needs_human_review=True,
                 final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
+                initial_pneumonia_probability=init_prob,
+                final_pneumonia_probability=init_prob,
+                probability_delta=0.0,
+                initial_classification=init_class,
                 prediction=None,
                 quality=quality_res,
                 ood=ood_res,
@@ -662,6 +721,10 @@ class ReliabilityPipeline:
                 reliability_label=ReliabilityLabel.NEEDS_HUMAN_REVIEW,
                 needs_human_review=True,
                 final_classification=FinalClassification.HUMAN_REVIEW_REQUIRED,
+                initial_pneumonia_probability=locals().get("init_prob", None),
+                final_pneumonia_probability=locals().get("init_prob", None),
+                probability_delta=0.0 if locals().get("init_prob") is not None else None,
+                initial_classification=locals().get("init_class", None),
                 prediction=None,
                 error_message=str(exc),
                 reason=f"Pipeline execution error: {exc}. Safely routed to human review.",

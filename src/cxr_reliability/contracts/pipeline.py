@@ -93,6 +93,12 @@ class PipelineOutput(StrictModel):
     needs_human_review: bool
     final_classification: FinalClassification = Field(default=FinalClassification.HUMAN_REVIEW_REQUIRED)
 
+    # Initial vs Final Pneumonia Probability & Classification tracking
+    initial_pneumonia_probability: float | None = None
+    final_pneumonia_probability: float | None = None
+    probability_delta: float | None = None
+    initial_classification: str | None = None
+
     quality: QualityResult | None = None
     ood: OODResult | None = None
     base_model: BaseModelResult | None = None
@@ -133,6 +139,18 @@ class PipelineOutput(StrictModel):
                             data["final_classification"] = FinalClassification.NO_PNEUMONIA
                         else:
                             data["final_classification"] = FinalClassification.HUMAN_REVIEW_REQUIRED
+
+            if "initial_classification" not in data or data["initial_classification"] is None:
+                init_prob = data.get("initial_pneumonia_probability")
+                if init_prob is not None:
+                    data["initial_classification"] = "Pneumonia" if init_prob >= 0.522161 else "No Pneumonia"
+
+            if "probability_delta" not in data or data["probability_delta"] is None:
+                f_prob = data.get("final_pneumonia_probability")
+                i_prob = data.get("initial_pneumonia_probability")
+                if f_prob is not None and i_prob is not None:
+                    data["probability_delta"] = f_prob - i_prob
+
         return data
 
     @model_validator(mode="after")
@@ -165,6 +183,12 @@ class PipelineResult(StrictModel):
     reliability_label: ReliabilityLabel
     needs_human_review: bool
     final_classification: FinalClassification = Field(default=FinalClassification.HUMAN_REVIEW_REQUIRED)
+
+    # Initial vs Final Pneumonia Probability & Classification tracking
+    initial_pneumonia_probability: float | None = None
+    final_pneumonia_probability: float | None = None
+    probability_delta: float | None = None
+    initial_classification: str | None = None
 
     prediction: PredictionSummary | None = None  # withheld when review is needed or error
     quality: QualityResult | None = None
@@ -216,6 +240,18 @@ class PipelineResult(StrictModel):
                             data["final_classification"] = FinalClassification.NO_PNEUMONIA
                         else:
                             data["final_classification"] = FinalClassification.HUMAN_REVIEW_REQUIRED
+
+            if "initial_classification" not in data or data["initial_classification"] is None:
+                init_prob = data.get("initial_pneumonia_probability")
+                if init_prob is not None:
+                    data["initial_classification"] = "Pneumonia" if init_prob >= 0.522161 else "No Pneumonia"
+
+            if "probability_delta" not in data or data["probability_delta"] is None:
+                f_prob = data.get("final_pneumonia_probability")
+                i_prob = data.get("initial_pneumonia_probability")
+                if f_prob is not None and i_prob is not None:
+                    data["probability_delta"] = f_prob - i_prob
+
         return data
 
     @model_validator(mode="after")
@@ -246,6 +282,10 @@ class PipelineResult(StrictModel):
             final_action=self.final_action,
             needs_human_review=self.needs_human_review,
             final_classification=self.final_classification,
+            initial_pneumonia_probability=self.initial_pneumonia_probability,
+            final_pneumonia_probability=self.final_pneumonia_probability,
+            probability_delta=self.probability_delta,
+            initial_classification=self.initial_classification,
             quality=self.quality,
             ood=self.ood,
             base_model=self.base_model,
